@@ -18,13 +18,9 @@ export default defineComponent({
     };
   },
   methods: {
-    emitSearch() {},
-  },
-  mounted() {
-    // Tipar corretamente o this aqui é seguro
-    this.emitSearch = debounce(() => {
+    emitSearch: debounce(function (this: any) {
       this.$emit('search', this.searchQuery);
-    }, 300);
+    }, 300), // Debounce to limit API calls
   },
 });
 </script>

@@ -15,7 +15,7 @@ export default defineComponent({
   data() {
     return {
       selectedType: '',
-      types: ['grama', 'fogo', 'água', 'elétrico', 'psíquico', 'lutador', 'rocha', 'voador', 'inseto', 'fantasma', 'dragão', 'gelo', 'terra', 'veneno', 'normal'],
+      types: [] as string[],
     };
   },
   async mounted() {

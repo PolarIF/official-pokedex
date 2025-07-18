@@ -13,7 +13,7 @@
     <poke-search @search="handleSearch" />
     <poke-filter-type @filter="handleFilter" />
     <v-progress-circular v-if="loading" indeterminate />
-    <poke-list v-else :pokemons="pokemonListItem" />
+    <poke-list v-else :pokemons="filteredPokemons" />
 
     <poke-pagination
       :current-page="currentPage"
@@ -34,7 +34,6 @@ import {
   getPokemonByName,
   type PokemonListItem,
 } from "../services/pokemonService";
-import { filter } from "lodash";
 
 export default defineComponent({
   components: { PokeList, PokePagination, PokeSearch, PokeFilterType },
@@ -52,13 +51,15 @@ export default defineComponent({
     };
   },
   computed: {
-    filteredPokemons() {
+    filteredPokemons(): PokemonListItem[] {
       let list = this.pokemonListItem;
       if (this.searchTerm) {
-        list = list.filter(p => p.name.toLowerCase().includes(this.searchTerm.toLowerCase()));
+        list = list.filter((p) =>
+          p.name.toLowerCase().includes(this.searchTerm.toLowerCase())
+        );
       }
       if (this.filterType) {
-        list = list.filter(p => p.types.includes(this.filterType));
+        list = list.filter((p) => p.types.includes(this.filterType));
       }
       return list;
     },
@@ -70,33 +71,60 @@ export default defineComponent({
 
   methods: {
     handleFilter(filterType: string) {
-      this.filterType = filterType; // Reset to first page on new filter
+      this.filterType = filterType;
+      this.currentPage = 1;
+      this.loadPokemonList(this.apiUrl);
     },
     handleSearch(searchQuery: string) {
-      this.searchTerm = searchQuery;// Reset to first page on new search
+      this.searchTerm = searchQuery;
+      this.currentPage = 1;
+      this.loadPokemonList(this.apiUrl);
     },
     async loadPokemonList(url: string) {
       this.loading = true;
       try {
-        const response = await axios.get(url);
-
-        const pokemonsWithImages = await Promise.all(
-          response.data.results.map(async (pokemon: { name: string }) => {
-            const details = await getPokemonByName(pokemon.name);
-            return {
-              name: pokemon.name,
-              image: details.sprites.front_default,
-              height: details.height,
-              weight: details.weight,
-              types: details.types.map((type) => type.type.name),
-            };
-          })
-        );
-
+        let pokemonsWithImages: PokemonListItem[] = [];
+        if (this.filterType) {
+          const typeResponse = await axios.get(
+            `https://pokeapi.co/api/v2/type/${this.filterType}`
+          );
+          const pokemonNames = typeResponse.data.pokemon.map(
+            (p: any) => p.pokemon.name
+          );
+          const start = (this.currentPage - 1) * this.limit;
+          const end = start + this.limit;
+          pokemonsWithImages = await Promise.all(
+            pokemonNames.slice(start, end).map(async (name: string) => {
+              const details = await getPokemonByName(name);
+              return {
+                name: details.name,
+                image: details.sprites.front_default,
+                height: details.height,
+                weight: details.weight,
+                types: details.types.map((type) => type.type.name),
+              };
+            })
+          );
+          this.totalPokemon = pokemonNames.length;
+        } else {
+          const response = await axios.get(url);
+          pokemonsWithImages = await Promise.all(
+            response.data.results.map(async (pokemon: { name: string }) => {
+              const details = await getPokemonByName(pokemon.name);
+              return {
+                name: pokemon.name,
+                image: details.sprites.front_default,
+                height: details.height,
+                weight: details.weight,
+                types: details.types.map((type) => type.type.name),
+              };
+            })
+          );
+          this.totalPokemon = response.data.count;
+        }
         this.pokemonListItem = pokemonsWithImages;
-        this.totalPokemon = response.data.count;
       } catch (error) {
-        console.error("erro ao carregar a lista de pokémons:", error);
+        console.error("Erro ao carregar a lista de pokémons:", error);
       } finally {
         this.loading = false;
       }
