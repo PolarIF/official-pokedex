@@ -19,13 +19,13 @@ export default defineComponent({
       page: this.currentPage,
     };
   },
-  watch: {
-    page(newPage) {
-      this.$emit('update:modelValue', newPage);
-    },
-    currentPage(newVal) {
-      this.page = newVal;
-    }
-  },
+  // watch: {
+  //   page(newPage) {
+  //     this.$emit('update:modelValue', newPage);
+  //   },
+  //   currentPage(newVal) {
+  //     this.page = newVal;
+  //   }
+  // },
 });
 </script>
