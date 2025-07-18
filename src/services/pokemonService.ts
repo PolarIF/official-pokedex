@@ -3,6 +3,9 @@ import api from './api';
 export interface PokemonListItem {
     name: string;
     image: string;
+    height: number;
+    weight: number;
+    types: string[];
 }
 
 export interface PokemonListResponse {

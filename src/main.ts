@@ -14,7 +14,20 @@ import '@mdi/font/css/materialdesignicons.css'
 const vuetify = createVuetify({
   components,
   directives,
-})
+  theme: {
+    defaultTheme: 'customTheme',
+    themes: {
+      customTheme: {
+        dark: false,
+        colors: {
+          primary: '#FF0000',
+          secondary: '#FFD700',
+          background: '#F5F5F5',
+        },
+      },
+    },
+  },
+});
 
 const app = createApp(App)
 
